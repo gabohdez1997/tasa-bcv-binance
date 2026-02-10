@@ -75,16 +75,22 @@ export const GET: RequestHandler = async ({ url }) => {
 
         // 2. If Today (or requested today), Scrape or Fetch
         if (targetDate === today) {
+            console.log(`Fetching rate for today: ${today}`);
             let rate = await scrapeBCV();
             let source = 'BCV Direct';
 
             if (!rate) {
+                console.log('BCV Scraping failed, trying DolarApi...');
                 rate = await fetchFromDolarApi();
                 source = 'DolarApi Fallback';
             }
 
             if (rate) {
-                saveRate(today, rate, source);
+                try {
+                    saveRate(today, rate, source);
+                } catch (e) {
+                    console.warn('Could not save rate to DB (standard on Vercel):', e);
+                }
                 return json({ promedio: rate, fuente: source, date: today });
             }
         }
