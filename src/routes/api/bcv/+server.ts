@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRate, saveRate } from '$lib/server/db';
-import { JSDOM } from 'jsdom';
 
 // Allow unauthorized SSL for BCV website (common for .gob.ve sites)
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -16,7 +15,7 @@ async function scrapeBCV() {
         const html = await response.text();
         console.log(`BCV Scraping: HTML length ${html.length}`);
 
-        // Regex is more robust for this specific site
+        // Regex is the most robust and light way for serverless
         const match = html.match(/id=["']dolar["'][^>]*>.*?<strong>\s*([\d,.]+)\s*<\/strong>/is);
         if (match) {
             console.log(`BCV Scraping: Found match: ${match[1]}`);
@@ -31,15 +30,6 @@ async function scrapeBCV() {
                 const rate = parseFloat(backup[1].trim().replace(',', '.'));
                 if (!isNaN(rate)) return rate;
             }
-        }
-
-        // DOM Fallback
-        const dom = new JSDOM(html);
-        const dolarElement = dom.window.document.querySelector('#dolar strong');
-        if (dolarElement) {
-            const rateStr = dolarElement.textContent?.trim().replace(',', '.') || '';
-            const rate = parseFloat(rateStr);
-            if (!isNaN(rate)) return rate;
         }
     } catch (e) {
         console.error('Scraping error:', e);
@@ -67,8 +57,8 @@ export const GET: RequestHandler = async ({ url }) => {
         const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
         const targetDate = dateParam || today;
 
-        // 1. Check Database
-        const cached = getRate(targetDate) as any;
+        // 1. Check Database (Now async)
+        const cached = await getRate(targetDate) as any;
         if (cached) {
             return json({ promedio: cached.rate, fuente: cached.source, date: cached.date });
         }
@@ -87,7 +77,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
             if (rate) {
                 try {
-                    saveRate(today, rate, source);
+                    await saveRate(today, rate, source);
                 } catch (e) {
                     console.warn('Could not save rate to DB (standard on Vercel):', e);
                 }

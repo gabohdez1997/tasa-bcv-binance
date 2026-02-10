@@ -11,6 +11,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
+	"dependencies": {
+		"better-sqlite3": "^12.6.2"
+	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-vercel": "^6.3.1",
@@ -21,8 +24,6 @@
 		"@types/jsdom": "^27.0.0",
 		"@types/node": "^25.2.3",
 		"autoprefixer": "^10.4.24",
-		"better-sqlite3": "^12.6.2",
-		"jsdom": "^28.0.0",
 		"postcss": "^8.5.6",
 		"svelte": "^5.49.2",
 		"svelte-check": "^4.3.6",
