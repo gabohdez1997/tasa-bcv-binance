@@ -97,13 +97,16 @@
         refreshData();
         fetchBCV();
 
+        console.log("PWA: checking installation readiness...");
         window.addEventListener("beforeinstallprompt", (e) => {
+            console.log("PWA: beforeinstallprompt fired!");
             e.preventDefault();
             deferredPrompt = e;
             showInstallBtn = true;
         });
 
         window.addEventListener("appinstalled", () => {
+            console.log("PWA: App installed successfully");
             showInstallBtn = false;
             deferredPrompt = null;
         });
