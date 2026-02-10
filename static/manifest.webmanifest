@@ -1,0 +1,21 @@
+{
+    "name": "Tasas VZLA",
+    "short_name": "TasasVZLA",
+    "description": "Consulta de tasas BCV y Binance P2P",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1e3a8a",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
