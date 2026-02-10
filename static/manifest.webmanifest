@@ -1,7 +1,7 @@
 {
-    "name": "Tasas VZLA",
-    "short_name": "TasasVZLA",
-    "description": "Consulta de tasas BCV y Binance P2P",
+    "name": "Tiendas Galpe 2021 C.A",
+    "short_name": "Galpe 2021",
+    "description": "App para Consulta de tasas BCV y Binance P2P",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
