@@ -13,6 +13,9 @@
     let error: string | null = null;
     let isDark = false;
 
+    let deferredPrompt: any = null;
+    let showInstallBtn = false;
+
     async function fetchAds(filterType: "p2p" | "block", amount: number) {
         const response = await fetch("/api/p2p", {
             method: "POST",
@@ -93,7 +96,28 @@
         isDark = document.documentElement.classList.contains("dark");
         refreshData();
         fetchBCV();
+
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBtn = true;
+        });
+
+        window.addEventListener("appinstalled", () => {
+            showInstallBtn = false;
+            deferredPrompt = null;
+        });
     });
+
+    async function installPWA() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+            showInstallBtn = false;
+        }
+        deferredPrompt = null;
+    }
 
     $: differential =
         bcvRate && blockAverage > 0
@@ -113,43 +137,69 @@
         >
             Tasas de Cambio en Venezuela
         </h1>
-        <button
-            on:click={toggleTheme}
-            class="p-2 rounded-full glass hover:scale-110 transition-transform duration-200"
-            aria-label="Toggle theme"
-        >
-            {#if isDark}
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    ><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path
-                        d="M12 20v2"
-                    /><path d="m4.93 4.93 1.41 1.41" /><path
-                        d="m17.66 17.66 1.41 1.41"
-                    /><path d="M2 12h2" /><path d="M20 12h2" /><path
-                        d="m6.34 17.66-1.41 1.41"
-                    /><path d="m19.07 4.93-1.41 1.41" /></svg
+        <div class="flex items-center gap-3">
+            {#if showInstallBtn}
+                <button
+                    on:click={installPWA}
+                    class="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95"
                 >
-            {:else}
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 text-slate-700"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    ><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg
-                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                        ></path><polyline points="7 10 12 15 17 10"
+                        ></polyline><line x1="12" y1="15" x2="12" y2="3"
+                        ></line></svg
+                    >
+                    Instalar App
+                </button>
             {/if}
-        </button>
+            <button
+                on:click={toggleTheme}
+                class="p-2 rounded-full glass hover:scale-110 transition-transform duration-200"
+                aria-label="Toggle theme"
+            >
+                {#if isDark}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-6 h-6 text-yellow-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><circle cx="12" cy="12" r="4" /><path
+                            d="M12 2v2"
+                        /><path d="M12 20v2" /><path
+                            d="m4.93 4.93 1.41 1.41"
+                        /><path d="m17.66 17.66 1.41 1.41" /><path
+                            d="M2 12h2"
+                        /><path d="M20 12h2" /><path
+                            d="m6.34 17.66-1.41 1.41"
+                        /><path d="m19.07 4.93-1.41 1.41" /></svg
+                    >
+                {:else}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-6 h-6 text-slate-700"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg
+                    >
+                {/if}
+            </button>
+        </div>
     </div>
 
     <!-- Dashboard Grid -->
@@ -232,7 +282,7 @@
             >
             {#if loading}
                 <div
-                    class="h-10 w-24 bg-blue-100 dark:bg-blue-900/40 animate-pulse rounded-lg"
+                    class="h-10 w-24 bg-blue-100 dark:bg-blue-100 dark:bg-blue-900/40 animate-pulse rounded-lg"
                 ></div>
             {:else}
                 <div class="flex items-baseline gap-1">
@@ -367,76 +417,6 @@
                 </div>
             </div>
         </div>
-        <!-- P2P General -->
-        <!-- <div class="flex flex-col">
-            <h2
-                class="text-xl font-bold mb-4 px-2 flex justify-between items-center"
-            >
-                <span>Compra P2P (General)</span>
-                <span class="text-xs font-normal text-slate-500"
-                    >{p2pAds.length} anuncios encontrados</span
-                >
-            </h2>
-            <div class="glass overflow-hidden rounded-2xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left border-collapse">
-                        <thead
-                            class="bg-slate-50/50 dark:bg-white/5 font-bold uppercase text-[10px] tracking-widest text-slate-500"
-                        >
-                            <tr>
-                                <th class="px-4 py-4">Comerciante</th>
-                                <th class="px-4 py-4">Confianza</th>
-                                <th class="px-4 py-4">Precio</th>
-                                <th class="px-4 py-4 text-right">Límites</th>
-                            </tr>
-                        </thead>
-                        <tbody
-                            class="divide-y divide-slate-100/10 dark:divide-white/5"
-                        >
-                            {#each p2pAds as ad}
-                                <tr
-                                    class="hover:bg-blue-500/5 transition-colors"
-                                >
-                                    <td class="px-4 py-4 font-semibold"
-                                        >{ad.advertiser.nickName}</td
-                                    >
-                                    <td class="px-4 py-4">
-                                        <div class="flex flex-col">
-                                            <span
-                                                >{ad.advertiser.monthOrderCount}
-                                                ord.</span
-                                            >
-                                            <span
-                                                class="text-[10px] text-green-500"
-                                                >{(
-                                                    ad.advertiser
-                                                        .monthFinishRate * 100
-                                                ).toFixed(1)}%</span
-                                            >
-                                        </div>
-                                    </td>
-                                    <td
-                                        class="px-4 py-4 font-mono font-bold text-blue-600 dark:text-blue-400"
-                                        >{parseFloat(ad.adv.price).toFixed(
-                                            2,
-                                        )}</td
-                                    >
-                                    <td
-                                        class="px-4 py-4 text-right tabular-nums text-slate-400 text-xs"
-                                    >
-                                        {parseFloat(
-                                            ad.adv.minSingleTransAmount,
-                                        ).toLocaleString()} - {parseFloat(
-                                            ad.adv.maxSingleTransAmount,
-                                        ).toLocaleString()}
-                                    </td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div> -->
     </div>
 </div>
 
