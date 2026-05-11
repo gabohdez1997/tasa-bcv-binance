@@ -16,7 +16,7 @@ async function scrapeBCV() {
         console.log(`BCV Scraping: HTML length ${html.length}`);
 
         // Regex is the most robust and light way for serverless
-        const match = html.match(/id=["']dolar["'][^>]*>.*?<strong>\s*([\d,.]+)\s*<\/strong>/is);
+        const match = html.match(/id=["']dolar["'][^>]*>.*?<strong[^>]*>\s*([\d,.]+)\s*<\/strong>/is);
         if (match) {
             console.log(`BCV Scraping: Found match: ${match[1]}`);
             const rateStr = match[1].trim().replace(',', '.');
@@ -24,7 +24,7 @@ async function scrapeBCV() {
             if (!isNaN(rate)) return rate;
         } else {
             console.log("BCV Scraping: No match found. Searching backup...");
-            const backup = html.match(/USD.*?<strong>\s*([\d,.]+)\s*<\/strong>/is);
+            const backup = html.match(/USD.*?<strong[^>]*>\s*([\d,.]+)/is);
             if (backup) {
                 console.log(`BCV Scraping: Backup match found: ${backup[1]}`);
                 const rate = parseFloat(backup[1].trim().replace(',', '.'));

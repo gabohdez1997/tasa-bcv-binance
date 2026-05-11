@@ -16,7 +16,7 @@ async function test() {
         console.log('HTML Length:', html.length);
 
         // Targeted Regex for the Dollar section
-        const match = html.match(/id=["']dolar["'][^>]*>.*?<strong>\s*([\d,.]+)\s*<\/strong>/is);
+        const match = html.match(/id=["']dolar["'][^>]*>.*?<strong[^>]*>\s*([\d,.]+)\s*<\/strong>/is);
 
         if (match) {
             console.log('Regex Match found!');
@@ -29,7 +29,7 @@ async function test() {
         } else {
             console.log('No direct match. Trying backup search...');
             // Backup search if exact ID structure changed
-            const backupMatch = html.match(/USD.*?<strong>\s*([\d,.]+)\s*<\/strong>/is);
+            const backupMatch = html.match(/USD.*?<strong[^>]*>\s*([\d,.]+)\s*<\/strong>/is);
             if (backupMatch) {
                 console.log('Backup Match found:', backupMatch[1]);
             } else {
