@@ -1,18 +1,40 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRate, saveRate } from '$lib/server/db';
-
-// Allow unauthorized SSL for BCV website (common for .gob.ve sites)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+import https from 'https';
 
 async function scrapeBCV() {
     try {
-        const response = await fetch('https://www.bcv.org.ve/', {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+        const html = await new Promise<string>((resolve, reject) => {
+            const options = {
+                hostname: 'www.bcv.org.ve',
+                port: 443,
+                path: '/',
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'es-ES,es;q=0.9'
+                },
+                rejectUnauthorized: false,
+                timeout: 15000
+            };
+
+            const request = https.request(options, (response) => {
+                let data = '';
+                response.on('data', chunk => data += chunk);
+                response.on('end', () => resolve(data));
+            });
+
+            request.on('error', reject);
+            request.on('timeout', () => {
+                request.destroy();
+                reject(new Error('Timeout connecting to bcv.org.ve'));
+            });
+
+            request.end();
         });
-        const html = await response.text();
+
         console.log(`BCV Scraping: HTML length ${html.length}`);
 
         // Regex is the most robust and light way for serverless
